@@ -1,0 +1,40 @@
+
+@startuml
+left to right direction
+
+actor "Администратор" as Admin
+actor "Пользователь" as User
+
+rectangle "ShelterAccounting" {
+  usecase "Авторизация" as AuthAdmin
+  usecase "Авторизация" as AuthUser
+
+  usecase "Просмотр списков\nпользователей" as UC1
+  usecase "Регистрация\nпользователей" as UC2
+  usecase "Редактирование\nданных пользователей" as UC3
+  usecase "Удаление\nпользователя" as UC4
+  usecase "Добавление\nживотного в реестр" as UC5
+  usecase "Изменение информации\nо животном в реестре" as UC6
+  usecase "Просмотр реестра\nучёта животных" as UC7
+}
+
+Admin --> AuthAdmin
+User --> AuthUser
+
+AuthAdmin --> UC1
+AuthAdmin --> UC2
+AuthAdmin --> UC3
+AuthAdmin --> UC4
+AuthAdmin --> UC5
+AuthAdmin --> UC6
+AuthAdmin --> UC7
+
+AuthUser --> UC1
+AuthUser --> UC2
+AuthUser --> UC3
+AuthUser --> UC4
+AuthUser --> UC5
+AuthUser --> UC6
+AuthUser --> UC7
+
+@enduml
