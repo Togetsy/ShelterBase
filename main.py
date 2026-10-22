@@ -1,1 +1,1 @@
-print('Hello, world! This is test branch')
+print('Hello, world!')

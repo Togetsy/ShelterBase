@@ -1,0 +1,30 @@
+
+@startuml
+hide methods
+hide stereotypes
+skinparam linetype ortho
+skinparam entity {
+    BackgroundColor White
+    BorderColor Black
+    FontColor Black
+}
+
+entity "SPECIES" as species {
+    * id : INTEGER <<PK>>
+    --
+    * name : TEXT <<UNIQUE>>
+}
+
+entity "ANIMALS" as animals {
+    * id : INTEGER <<PK>>
+    --
+    * name : TEXT
+    * species_id : INTEGER <<FK>>
+    * sex : TEXT
+    age : INTEGER
+    * status : TEXT
+}
+
+species ||--o{ animals : "1:N"
+
+@enduml
