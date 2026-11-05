@@ -1,30 +1,33 @@
-
 @startuml
 hide methods
 hide stereotypes
-skinparam linetype ortho
-skinparam entity {
-    BackgroundColor White
-    BorderColor Black
-    FontColor Black
+
+entity SPECIES {
+  * id : INTEGER <<PK>>
+  --
+  * name : TEXT <<UNIQUE>>
 }
 
-entity "SPECIES" as species {
-    * id : INTEGER <<PK>>
-    --
-    * name : TEXT <<UNIQUE>>
+entity OWNERS {
+  * id : INTEGER <<PK>>
+  --
+  * name : TEXT
+  * address : TEXT
+  * phone : TEXT
+  email : TEXT
 }
 
-entity "ANIMALS" as animals {
-    * id : INTEGER <<PK>>
-    --
-    * name : TEXT
-    * species_id : INTEGER <<FK>>
-    * sex : TEXT
-    age : INTEGER
-    * status : TEXT
+entity ANIMALS {
+  * id : INTEGER <<PK>>
+  --
+  * name : TEXT
+  * species_id : INTEGER <<FK>>
+  * sex : TEXT
+  age : INTEGER
+  * status : TEXT
+  owner_id : INTEGER <<FK>>
 }
 
-species ||--o{ animals : "1:N"
-
+SPECIES ||--o{ ANIMALS : "1:N"
+OWNERS ||--o{ ANIMALS : "1:N"
 @enduml
