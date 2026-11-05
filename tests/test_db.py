@@ -1,7 +1,7 @@
-
 import sqlite3
 
 base = sqlite3.connect("shelter.db")
+base.execute("PRAGMA foreign_keys = ON")
 cursor = base.cursor()
 
 cursor.execute("""CREATE TABLE IF NOT EXISTS species (
@@ -11,15 +11,88 @@ cursor.execute("""CREATE TABLE IF NOT EXISTS species (
 cursor.execute("INSERT OR IGNORE INTO species (name) VALUES (?)", ('Кошка',))
 cursor.execute("INSERT OR IGNORE INTO species (name) VALUES (?)", ('Собака',))
 
+
+cursor.execute("""
+    CREATE TABLE IF NOT EXISTS owners (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        address TEXT NOT NULL,
+        phone TEXT NOT NULL,
+        email TEXT
+    )
+""")
+
 cursor.execute("""CREATE TABLE IF NOT EXISTS animals (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    name TEXT NOT NULL,
-                    species_id INTEGER NOT NULL,
-                    sex TEXT NOT NULL,
-                    age INTEGER,
-                    status TEXT NOT NULL DEFAULT 'В приюте',
-                    FOREIGN KEY (species_id) REFERENCES species (id)
-                )""")
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    species_id INTEGER NOT NULL,
+    sex TEXT NOT NULL,
+    age INTEGER,
+    status TEXT NOT NULL DEFAULT 'В приюте',
+    owner_id INTEGER,
+    FOREIGN KEY (species_id) REFERENCES species (id),
+    FOREIGN KEY (owner_id) REFERENCES owners (id)
+)""")
+
+cursor.execute("PRAGMA table_info(animals)")
+columns = [column[1] for column in cursor.fetchall()]
+
+if "owner_id" not in columns:
+    cursor.execute("""
+        ALTER TABLE animals
+        ADD COLUMN owner_id INTEGER REFERENCES owners(id)
+    """)
+
+
+
+def add_owner():
+    name = input("ФИО владельца: ")
+    address = input("Адрес: ")
+    phone = input("Номер телефона: ")
+    email = input("Электронная почта: ")
+
+    cursor.execute("""
+        INSERT INTO owners (name, address, phone, email)
+        VALUES (?, ?, ?, ?)
+    """, (name, address, phone, email))
+
+    base.commit()
+
+    owner_id = cursor.lastrowid
+    print(f"Владелец добавлен! Его ID: {owner_id}")
+
+def show_owners():
+    cursor.execute("SELECT * FROM owners")
+    owners = cursor.fetchall()
+
+    if not owners:
+        print("Владельцев пока нет.")
+        return
+
+    for owner in owners:
+        print(
+            f"ID: {owner[0]} | "
+            f"ФИО: {owner[1]} | "
+            f"Адрес: {owner[2]} | "
+            f"Телефон: {owner[3]} | "
+            f"Email: {owner[4]}"
+        )
+
+def assign_owner():
+    animal_id = int(input("Введите ID животного: "))
+    owner_id = int(input("Введите ID владельца: "))
+
+    cursor.execute("""
+        UPDATE animals
+        SET owner_id = ?
+        WHERE id = ?
+    """, (owner_id, animal_id))
+
+    if cursor.rowcount == 0:
+        print("Животное не найдено.")
+    else:
+        base.commit()
+        print("Владелец назначен!")
 
 def add_animal():
     name = input("Кличка животного: ")
@@ -37,11 +110,13 @@ def add_animal():
 
 def show_animals():
     cursor.execute("""
-        SELECT animals.id, animals.name, species.name,
-               animals.sex, animals.age, animals.status
-        FROM animals
-        JOIN species ON animals.species_id = species.id
-    """)
+    SELECT animals.id, animals.name, species.name,
+           animals.sex, animals.age, animals.status,
+           owners.name, owners.phone
+    FROM animals
+    JOIN species ON animals.species_id = species.id
+    LEFT JOIN owners ON animals.owner_id = owners.id
+""")
 
     animals = cursor.fetchall()
 
@@ -56,8 +131,10 @@ def show_animals():
             f"Вид: {animal[2]} | "
             f"Пол: {animal[3]} | "
             f"Возраст: {animal[4]} | "
-            f"Статус: {animal[5]}"
-        )
+            f"Статус: {animal[5]} | "
+            f"Владелец: {animal[6] or 'Нет'} | "
+            f"Телефон: {animal[7] or 'Нет'}"
+    )
 def menu():
     while True:
         print("\nМеню:")
@@ -67,8 +144,11 @@ def menu():
         print("4. Поиск животного")
         print("5. Изменить статус животного")
         print("6. Удалить животное")
+        print("7. Добавить владельца")
+        print("8. Назначить владельца животному")
+        print("9. Показать всех владельцев")
 
-        choice = input("Выберите действие (1-6): ")
+        choice = input("Выберите действие (1-9): ")
 
         if choice == '1':
             add_animal()
@@ -82,6 +162,12 @@ def menu():
             change_status()
         elif choice == '6':
             delete_animal()
+        elif choice == '7':
+            add_owner()
+        elif choice == '8':
+            assign_owner()
+        elif choice == '9':
+            show_owners()
         else:
             print("Неверный выбор. Попробуйте снова.")
 
