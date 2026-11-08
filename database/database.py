@@ -1,3 +1,4 @@
+
 import sqlite3
 
 
@@ -36,6 +37,16 @@ def initialize_database():
             ALTER TABLE animals
             ADD COLUMN owner_id INTEGER REFERENCES owners(id)
         """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL UNIQUE,
+            password_hash TEXT NOT NULL,
+            salt TEXT NOT NULL,
+            role TEXT NOT NULL CHECK(role IN ('admin', 'employee'))
+        )
+    """)
 
     conn.commit()
     conn.close()
